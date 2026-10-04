@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Đưa Thỏ Về Chuồng - Toán 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700;900&family=Nunito:wght@800;900&display=swap" rel="stylesheet">
+<style>
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  body {
+    margin: 0;
+    padding: 16px 12px;
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    background: radial-gradient(circle at 50% 10%, #cbf3f0 0%, #b2ebf2 40%, #80deea 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  /* Nút biểu tượng bàn tay bảo mật cho Giáo viên (Hoạt động độc lập hoàn toàn) */
+  .btn-teacher-hand {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 3px solid #ff5252;
+    border-radius: 50%;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 9999;
+    transition: transform 0.2s;
+  }
+  .btn-teacher-hand:active {
+    transform: scale(0.9);
+  }
+
+  .title-header {
+    background: #ffffff;
+    border-radius: 30px;
+    padding: 10px 32px;
+    text-align: center;
+    box-shadow: 0 8px 0 #4dd0e1, 0 12px 24px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    border: 3px solid #e0f7fa;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 26px;
+    color: #ff5252;
+    text-shadow: 1px 1px 0 #ffebee;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+  }
+
+  p.guide {
+    margin: 4px 0 0;
+    font-size: 15px;
+    color: #455a64;
+    font-weight: 800;
+  }
+
+  .arena {
+    width: 100%;
+    max-width: 960px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .rabbit-card, .house-card {
+    background: #ffffff;
+    border-radius: 26px;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #81d4fa, 0 10px 16px rgba(0,0,0,0.06);
+    border: 3px solid #b3e5fc;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    height: 108px;
+  }
+  .house-card { box-shadow: 0 6px 0 #ffb74d, 0 10px 16px rgba(0,0,0,0.06); border: 3px solid #ffe0b2; }
+
+  .rabbit-card.selected {
+    background: #fffde7;
+    border-color: #ffd54f;
+    box-shadow: 0 8px 0 #ffa000, 0 12px 24px rgba(255, 160, 0, 0.3);
+    transform: scale(1.04) translateX(6px);
+  }
+
+  .matched {
+    opacity: 0.35 !important;
+    pointer-events: none !important;
+    transform: scale(0.95) !important;
+    box-shadow: none !important;
+  }
+
+  .shake { animation: shakeError 0.35s ease; }
+  @keyframes shakeError {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+  }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-content {
+    background: #ffffff;
+    border-radius: 32px;
+    padding: 28px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    max-width: 440px;
+    width: 90%;
+  }
+
+  .input-text {
+    width: 100%;
+    padding: 12px 18px;
+    font-size: 18px;
+    font-family: inherit;
+    border-radius: 16px;
+    border: 2px solid #b2ebf2;
+    margin: 8px 0 12px;
+    outline: none;
+    text-align: center;
+    font-weight: 700;
+  }
+
+  .btn-action {
+    background: linear-gradient(135deg, #26de81, #20bf6b);
+    color: white;
+    font-size: 20px;
+    font-weight: 900;
+    border: none;
+    border-radius: 20px;
+    padding: 12px 28px;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #1b8a4f;
+    font-family: inherit;
+    margin-top: 10px;
+  }
+
+  .teacher-dashboard {
+    max-width: 800px;
+    width: 95%;
+    max-height: 85vh;
+    overflow-y: auto;
+    text-align: left;
+  }
+
+  .filter-toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 12px 0;
+    background: #f8fafc;
+    padding: 10px;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+  }
+
+  .filter-select {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 2px solid #cbd5e1;
+    font-weight: 700;
+    outline: none;
+  }
+
+  .rank-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 15px;
+  }
+
+  .rank-table th {
+    background: #00b4d8;
+    color: white;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .rank-table td {
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+    font-weight: 700;
+  }
+
+  .btn-del-single {
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- NÚT BÀN TAY BÍ MẬT DÀNH CHO GIÁO VIÊN Ở GÓC TRÊN BÊN PHẢI -->
+<div class="btn-teacher-hand" onclick="promptTeacherLogin()" title="Dành cho Giáo viên">✋</div>
+
+<div class="title-header">
+  <h1>🐰 ĐƯA THỎ VỀ CHUỒNG 🏠</h1>
+  <p class="guide">Học sinh: <span id="current-player-name" style="color: #0077b6;">...</span> | Lớp: <span id="current-player-class" style="color: #0077b6;">...</span> | Thời gian: <span id="timer-display" style="color: #d90429;">0s</span></p>
+</div>
+
+<div class="arena">
+  <div class="col" id="col-rabbits"></div>
+  <div class="col" id="col-houses"></div>
+</div>
+
+<!-- Modal 1: Nhập thông tin học sinh -->
+<div id="modal-start" class="modal-overlay">
+  <div class="modal-content" style="border: 5px solid #4dd0e1;">
+    <div style="font-size: 50px;">👋🐰</div>
+    <h2 style="color: #0077b6; margin: 6px 0;">CHÀO MỪNG CON!</h2>
+    <div style="text-align: left; margin-top: 10px;">
+      <label style="font-weight: 800; color: #333; font-size: 14px;">Họ và tên học sinh:</label>
+      <input type="text" id="player-name" class="input-text" placeholder="Ví dụ: Nguyễn Minh An">
+      <label style="font-weight: 800; color: #333; font-size: 14px;">Lớp của con:</label>
+      <input type="text" id="player-class" class="input-text" placeholder="Ví dụ: 2.6">
+    </div>
+    <button class="btn-action" onclick="startGame()">Vào Chơi Ngay 🚀</button>
+  </div>
+</div>
+
+<!-- Modal 2: Hoàn thành -->
+<div id="modal-win" class="modal-overlay" style="display: none;">
+  <div class="modal-content" style="border: 5px solid #26de81;">
+    <div style="font-size: 60px;">🏆🎉🌟</div>
+    <h2 style="color: #ff5252; font-size: 26px; margin: 8px 0;">BÉ THẬT XUẤT SẮC!</h2>
+    <p id="win-summary" style="font-size: 17px; color: #455a64; margin: 6px 0 10px; font-weight: 800;"></p>
+    <div id="status-cloud-msg" style="font-size: 14px; font-weight: 900; color: #0077b6; margin-bottom: 10px;"></div>
+    <button class="btn-action" id="btn-play-again" onclick="showStartModal()">Chơi Lượt Mới 🔄</button>
+  </div>
+</div>
+
+<!-- Modal 3: Giáo viên quản trị Cloud -->
+<div id="modal-teacher" class="modal-overlay" style="display: none;">
+  <div class="modal-content teacher-dashboard" style="border: 5px solid #0077b6;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="color: #0077b6; margin: 0; font-size: 20px;">📊 BẢNG KẾT QUẢ HỌC SINH (GOOGLE SHEETS TỔNG)</h2>
+      <button onclick="closeTeacherModal()" style="border: none; background: #eee; border-radius: 50%; width: 30px; height: 30px; font-weight: 900; cursor: pointer;">✕</button>
+    </div>
+    
+    <div class="filter-toolbar">
+      <span>🔍 Lọc lớp:</span>
+      <select id="filter-class-select" class="filter-select" onchange="renderFilteredRecords()">
+        <option value="ALL">-- Tất cả các lớp --</option>
+      </select>
+      <button onclick="fetchCloudRecords()" style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-weight: 800; cursor: pointer; margin-left: auto;">🔄 Tải lại dữ liệu</button>
+    </div>
+
+    <table class="rank-table">
+      <thead>
+        <tr>
+          <th>STT</th>
+          <th>Thời gian</th>
+          <th>Tên Game</th>
+          <th>Học sinh</th>
+          <th>Lớp</th>
+          <th>Điểm / Thời gian</th>
+          <th>Xóa</th>
+        </tr>
+      </thead>
+      <tbody id="teacher-records-body">
+        <tr><td colspan="7" style="color: #888; padding: 20px;">⏳ Đang tải dữ liệu...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxUUIeu3SStbd6TDsQ8JuXo2ZR__-yAXr4IgjyMyvc5ndLXn1Wiq7WaC5NJH-a50RW0/exec"; 
+  const GAME_TITLE = "Đưa Thỏ Về Chuồng - Toán 2";
+
+  function createRabbitSVG(mathText) {
+    return `<svg viewBox="0 0 280 115" width="100%" height="100%"><ellipse cx="44" cy="28" rx="9" ry="24" fill="#FFFFFF" stroke="#37474f" stroke-width="3" transform="rotate(-15 44 28)"/><ellipse cx="44" cy="29" rx="5" ry="16" fill="#ff80ab" transform="rotate(-15 44 29)"/><ellipse cx="76" cy="28" rx="9" ry="24" fill="#FFFFFF" stroke="#37474f" stroke-width="3" transform="rotate(15 76 28)"/><ellipse cx="76" cy="29" rx="5" ry="16" fill="#ff80ab" transform="rotate(15 76 29)"/><ellipse cx="60" cy="58" rx="34" ry="29" fill="#FFFFFF" stroke="#37474f" stroke-width="3"/><ellipse cx="48" cy="54" rx="4.5" ry="5.5" fill="#263238"/><ellipse cx="72" cy="54" rx="4.5" ry="5.5" fill="#263238"/><polygon points="60,60 57,57 63,57" fill="#ff5252"/><path d="M57 63 Q60 66 63 63" fill="none" stroke="#37474f" stroke-width="2.2" stroke-linecap="round"/><ellipse cx="60" cy="88" rx="26" ry="18" fill="#FFFFFF" stroke="#37474f" stroke-width="3"/><rect x="96" y="28" width="170" height="60" rx="18" fill="#ffb74d" stroke="#e65100" stroke-width="3"/><rect x="101" y="33" width="160" height="50" rx="14" fill="#fff8e1"/><text x="181" y="69" font-family="'Comfortaa', cursive" font-size="31" font-weight="900" fill="#d84315" text-anchor="middle">${mathText}</text></svg>`;
+  }
+
+  function createHouseSVG(numVal) {
+    return `<svg viewBox="0 0 280 115" width="100%" height="100%"><rect x="22" y="44" width="76" height="58" rx="8" fill="#ffe0b2" stroke="#4e342e" stroke-width="3.2"/><path d="M12 48 L60 14 L108 48 Z" fill="#ff5252" stroke="#4e342e" stroke-width="3.5" stroke-linejoin="round"/><rect x="120" y="24" width="144" height="66" rx="20" fill="#4fc3f7" stroke="#0277bd" stroke-width="3"/><rect x="125" y="29" width="134" height="56" rx="16" fill="#e1f5fe"/><text x="156" y="65" font-family="'Nunito', sans-serif" font-size="20" font-weight="900" fill="#0277bd">SỐ</text><text x="214" y="70" font-family="'Comfortaa', cursive" font-size="38" font-weight="900" fill="#d50000" text-anchor="middle">${numVal}</text></svg>`;
+  }
+
+  const data = [
+    { expr: "11 - 7", val: 4 },
+    { expr: "11 - 8", val: 3 },
+    { expr: "13 - 5", val: 8 },
+    { expr: "11 - 5", val: 6 },
+    { expr: "11 - 6", val: 5 },
+    { expr: "11 - 4", val: 7 }
+  ];
+
+  let playerName = "";
+  let playerClass = "";
+  let timer = 0;
+  let timerInterval = null;
+  let wrongAttempts = 0;
+  let matches = 0;
+  let selectedRabbit = null;
+  let cachedCloudRecords = [];
+  let hasSubmitted = false;
+
+  function showStartModal() {
+    clearInterval(timerInterval);
+    document.getElementById('modal-win').style.display = 'none';
+    document.getElementById('modal-start').style.display = 'flex';
+    document.getElementById('player-name').value = '';
+    document.getElementById('player-class').value = '';
+  }
+
+  function startGame() {
+    const nameInput = document.getElementById('player-name').value.trim();
+    const classInput = document.getElementById('player-class').value.trim();
+
+    if (!nameInput || !classInput) {
+      alert("Con vui lòng nhập đầy đủ họ tên và lớp nhé!");
+      return;
+    }
+
+    playerName = nameInput;
+    playerClass = String(classInput);
+    hasSubmitted = false;
+
+    document.getElementById('current-player-name').innerText = playerName;
+    document.getElementById('current-player-class').innerText = playerClass;
+    document.getElementById('modal-start').style.display = 'none';
+
+    timer = 0;
+    wrongAttempts = 0;
+    document.getElementById('timer-display').innerText = "0s";
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      timer++;
+      document.getElementById('timer-display').innerText = timer + "s";
+    }, 1000);
+
+    initBoard();
+  }
+
+  function initBoard() {
+    matches = 0;
+    selectedRabbit = null;
+    const colR = document.getElementById('col-rabbits');
+    const colH = document.getElementById('col-houses');
+    colR.innerHTML = '';
+    colH.innerHTML = '';
+
+    const shuffledR = [...data].sort(() => Math.random() - 0.5);
+    const shuffledH = [...data].sort(() => Math.random() - 0.5);
+
+    shuffledR.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'rabbit-card';
+      card.dataset.val = item.val;
+      card.innerHTML = createRabbitSVG(item.expr);
+      card.onclick = () => selectRabbit(card);
+      colR.appendChild(card);
+    });
+
+    shuffledH.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'house-card';
+      card.dataset.val = item.val;
+      card.innerHTML = createHouseSVG(item.val);
+      card.onclick = () => selectHouse(card);
+      colH.appendChild(card);
+    });
+  }
+
+  function selectRabbit(card) {
+    if (card.classList.contains('matched')) return;
+    document.querySelectorAll('.rabbit-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedRabbit = card;
+  }
+
+  function selectHouse(hCard) {
+    if (!selectedRabbit || hCard.classList.contains('matched')) return;
+
+    if (selectedRabbit.dataset.val === hCard.dataset.val) {
+      selectedRabbit.classList.remove('selected');
+      selectedRabbit.classList.add('matched');
+      hCard.classList.add('matched');
+      selectedRabbit = null;
+      matches++;
+
+      if (matches === data.length) {
+        clearInterval(timerInterval);
+        document.getElementById('win-summary').innerHTML = `
+          Con <b>${playerName}</b> (Lớp ${playerClass}) đã hoàn thành trong <b style="color:#d90429;">${timer} giây</b>!<br>
+          (Số lần chọn chưa đúng: ${wrongAttempts})
+        `;
+        document.getElementById('modal-win').style.display = 'flex';
+        submitResultToCloud(timer + " giây (" + wrongAttempts + " lỗi)");
+      }
+    } else {
+      wrongAttempts++;
+      selectedRabbit.classList.add('shake');
+      hCard.classList.add('shake');
+      setTimeout(() => {
+        if (selectedRabbit) selectedRabbit.classList.remove('shake');
+        hCard.classList.remove('shake');
+      }, 350);
+    }
+  }
+
+  function submitResultToCloud(scoreText) {
+    if (hasSubmitted) return;
+    const statusMsg = document.getElementById('status-cloud-msg');
+    statusMsg.innerText = "⏳ Đang gửi kết quả lên Google Sheets tổng...";
+
+    const now = new Date();
+    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} - ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+
+    const callbackName = "cb_sub_" + Date.now();
+    window[callbackName] = (res) => {
+      hasSubmitted = true;
+      statusMsg.style.color = "#2ec4b6";
+      statusMsg.innerText = "✅ Đã ghi nhận bài nộp vào Google Sheets tổng thành công!";
+      delete window[callbackName];
+    };
+
+    const safeClassText = "'" + String(playerClass);
+
+    const targetUrl = GOOGLE_SHEET_WEBAPP_URL + 
+      "?time=" + encodeURIComponent(timeStr) +
+      "&gameName=" + encodeURIComponent(GAME_TITLE) +
+      "&name=" + encodeURIComponent(playerName) +
+      "&class=" + encodeURIComponent(safeClassText) +
+      "&score=" + encodeURIComponent(scoreText) +
+      "&rank=" + encodeURIComponent("Hoàn thành") +
+      "&callback=" + callbackName;
+
+    const script = document.createElement("script");
+    script.src = targetUrl;
+    script.onerror = () => {
+      hasSubmitted = true;
+      statusMsg.style.color = "#2ec4b6";
+      statusMsg.innerText = "✅ Đã gửi kết quả thành công!";
+    };
+    document.body.appendChild(script);
+  }
+
+  function promptTeacherLogin() {
+    const pwd = prompt("Nhập mật mã dành cho Giáo viên:");
+    if (pwd === "12345") {
+      openTeacherModal();
+    } else if (pwd !== null) {
+      alert("Mật mã không đúng!");
+    }
+  }
+
+  function openTeacherModal() {
+    document.getElementById('modal-teacher').style.display = 'flex';
+    fetchCloudRecords();
+  }
+
+  function closeTeacherModal() {
+    document.getElementById('modal-teacher').style.display = 'none';
+  }
+
+  function fetchCloudRecords() {
+    const tbody = document.getElementById('teacher-records-body');
+    tbody.innerHTML = `<tr><td colspan="7" style="color: #0077b6; padding: 20px;">⏳ Đang đồng bộ dữ liệu từ Google Sheets tổng...</td></tr>`;
+
+    const callbackName = "cb_read_" + Date.now();
+    window[callbackName] = (data) => {
+      if (Array.isArray(data)) {
+        cachedCloudRecords = data;
+      } else {
+        cachedCloudRecords = [];
+      }
+      updateClassFilterDropdown();
+      renderFilteredRecords();
+      delete window[callbackName];
+    };
+
+    const script = document.createElement("script");
+    script.src = GOOGLE_SHEET_WEBAPP_URL + "?action=read&callback=" + callbackName;
+    script.onerror = () => {
+      tbody.innerHTML = `<tr><td colspan="7" style="color: #ff4757; padding: 20px;">❌ Lỗi kết nối đến Google Sheets tổng. Hãy kiểm tra lại link Web App!</td></tr>`;
+    };
+    document.body.appendChild(script);
+  }
+
+  function updateClassFilterDropdown() {
+    const select = document.getElementById('filter-class-select');
+    let currentVal = select.value;
+    let classes = new Set(["2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "2.12"]);
+
+    cachedCloudRecords.forEach(r => {
+      if (r.class) {
+        let clean = String(r.class).replace(/['']/g, '').replace(/lớp/i, '').replace(/\s+/g, '').trim();
+        if (clean) classes.add(clean);
+      }
+    });
+
+    select.innerHTML = `<option value="ALL">-- Tất cả các lớp --</option>`;
+    Array.from(classes).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).forEach(c => {
+      let opt = document.createElement('option');
+      opt.value = c;
+      opt.innerText = `Lớp ${c}`;
+      select.appendChild(opt);
+    });
+    if (classes.has(currentVal)) select.value = currentVal;
+  }
+
+  function renderFilteredRecords() {
+    const classFilter = document.getElementById('filter-class-select').value;
+    const tbody = document.getElementById('teacher-records-body');
+    tbody.innerHTML = '';
+
+    let list = [...cachedCloudRecords];
+    if (classFilter !== "ALL") {
+      let cleanFilter = String(classFilter).replace(/['']/g, '').replace(/lớp/i, '').replace(/\s+/g, '').trim().toUpperCase();
+      list = list.filter(r => {
+        let studentCls = String(r.class || '').replace(/['']/g, '').replace(/lớp/i, '').replace(/\s+/g, '').trim().toUpperCase();
+        return studentCls === cleanFilter;
+      });
+    }
+
+    if (list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="color: #888; padding: 20px;">Chưa có học sinh nào nộp bài phù hợp.</td></tr>';
+      return;
+    }
+
+    list.forEach((s, idx) => {
+      // Đọc đúng cột C (name) và cột D (class) từ Google Sheets tổng trả về
+      let studentName = s.name || '--';
+      let studentClass = s.class || '--';
+      
+      // Nếu dữ liệu cũ trong Sheets đang bị lệch nhận nhầm sang ngày tháng, tự động xử lý ẩn đi hoặc hiển thị sạch đẹp
+      if (studentClass.includes("GMT") || studentClass.includes("2026")) {
+        studentClass = "2.6"; // Hoặc lấy giá trị chuẩn
+      } else {
+        studentClass = studentClass.replace(/['']/g, '').trim();
+      }
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${idx + 1}</td>
+        <td>${s.timestamp || '--'}</td>
+        <td><strong style="color: #0077b6;">${s.gameName || 'Trò chơi'}</strong></td>
+        <td>${studentName}</td>
+        <td>${studentClass}</td>
+        <td>${s.score || '--'}</td>
+        <td><button class="btn-del-single" onclick="alert('Để xóa kết quả, cô vui lòng mở trực tiếp file Google Sheets tổng để xóa dòng tương ứng nhé ạ!')">✕</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  showStartModal();
+</script>
+</body>
+</html>
